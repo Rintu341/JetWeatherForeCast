@@ -1,6 +1,8 @@
 package com.example.weatherforcastapp.screen.main
 
 
+import android.graphics.Paint.Align
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -10,8 +12,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,11 +27,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -42,7 +50,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +64,9 @@ import com.example.weather.navigation.WeatherScreens
 import com.example.weatherforcastapp.R
 import com.example.weatherforcastapp.data.DataOrException
 import com.example.weatherforcastapp.model.WeatherObject
-import java.time.LocalDateTime
+import com.example.weatherforcastapp.utils.fahrenheitToCelsius
+import com.example.weatherforcastapp.utils.formatDate
+import com.example.weatherforcastapp.utils.formatDateTime
 
 @Composable
 fun MainScreen(navController: NavController,
@@ -62,7 +74,7 @@ fun MainScreen(navController: NavController,
         val weatherData = produceState<DataOrException<WeatherObject,Boolean,Exception>>(
             initialValue = DataOrException(loading = true)
         ) {
-            value = mainViewModel.getWeatherData("Kolkata")
+            value = mainViewModel.getWeatherData("London")
         }
 
         when{
@@ -71,7 +83,7 @@ fun MainScreen(navController: NavController,
                 CircularProgressIndicator()
             }
             weatherData.value.e != null ->{
-                Text("Something is wrong")
+                Text("Something is wrong ")
             }
             else->{
             MainScaffold(weatherData = weatherData,navController)
@@ -180,21 +192,72 @@ fun MainContent(weatherData: State<DataOrException<WeatherObject, Boolean, Excep
     val imageUrl = remember {
         mutableStateOf("https://openweathermap.org/img/wn/${weatherData.value.data!!.list[0].weather[0].icon}.png")
     }
-
+    val weatherItem = weatherData.value.data!!.list[0]
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
     ) {
-        TopMainContent(weatherData.value.data!!.list[0].temp.min.toInt().toString(),
-            imageUrl.value
+        TopMainContent(weatherItem.temp.day,
+            imageUrl.value,
+            formatDate(weatherItem.dt),
+            weatherItem.weather[0].main
         )
+        MiddleMainContent(humidity = weatherItem.humidity.toString(),
+            feelsLike = fahrenheitToCelsius(weatherItem.feels_like.day),
+            speed = weatherItem.speed.toString())
+        Divider()
+        SunShineAndSunRise(sunset = weatherItem.sunset,sunrise = weatherItem.sunrise)
     }
 }
 
+@Composable
+fun SunShineAndSunRise(sunset: Int, sunrise: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    )
+    {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id =  R.drawable.sunrise),
+                contentDescription = "sunrise",
+                modifier = Modifier.size(40.dp)
+                    .padding(end = 8.dp)
+            )
+            Text(text = formatDateTime(sunrise),
+                fontSize = MaterialTheme.typography.bodyLarge.fontSize)
+        }
+
+        Row (
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text(text = formatDateTime(sunset),
+                fontSize = MaterialTheme.typography.bodyLarge.fontSize)
+            Image(
+                painter = painterResource(id =  R.drawable.sunset),
+                contentDescription = "sunset",
+                modifier = Modifier.size(40.dp)
+                    .padding(start = 8.dp)
+            )
+
+        }
+
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
-fun TopMainContent(temp: String = "27", iconUrl: String = "icon") {
+fun TopMainContent(temp: Double = 84.87,
+                   iconUrl: String = "icon",
+                   date:String = "Thu, Oct 34",
+                   currentWeather:String = "Clear"
+                   ) {
 
     Card(
         modifier = Modifier
@@ -211,32 +274,37 @@ fun TopMainContent(temp: String = "27", iconUrl: String = "icon") {
                     .fillMaxHeight(0.7f)
                     .background(Color.Transparent)
                     .padding(all = 4.dp),
-                horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+                horizontalArrangement = Arrangement.Absolute.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier.padding(start = 16.dp),
+                    modifier = Modifier.padding(start = 8.dp),
                     contentAlignment = Alignment.Center
                 )
                 {
-
+                    Column {
                         Text(
-                            temp + "c",
-                            fontSize = 80.sp
+                            text = fahrenheitToCelsius(temp)+"°c",
+                            fontSize = 70.sp
                         )
-
+                        Text(
+                            currentWeather,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
                 }
                 Box(
                     contentAlignment = Alignment.Center
                 )
                 {
-                    AsyncImage(
-                        model = iconUrl,
-                        contentDescription = "Weather icon",
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(CircleShape)
-                    )
+                        AsyncImage(
+                            model = iconUrl,
+                            contentDescription = "Weather icon",
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(CircleShape)
+                        )
                 }
             }
             Box(
@@ -244,15 +312,104 @@ fun TopMainContent(temp: String = "27", iconUrl: String = "icon") {
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .padding(8.dp),
-                contentAlignment = Alignment.BottomEnd
+                contentAlignment = Alignment.CenterEnd
             ) {
-                Text(LocalDateTime.now().toString(),
+                Text(
+                    date,
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
 
+    }
+}
+@Preview(showBackground = true)
+@Composable
+fun MiddleMainContent(humidity:String = "10",feelsLike: String = "45",speed:String = "20") {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        )
+        {
+            Row(
+                modifier = Modifier.padding(4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                Icon(
+                    painter = painterResource(id = R.drawable.humidity),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(end = 8.dp)
+                )
+                Text(
+                    text = "$humidity%",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Row(
+                modifier = Modifier.padding(4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                Icon(
+                    painter = painterResource(id = R.drawable.feelslike),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(end = 8.dp)
+                )
+                Text(
+                    text = "$feelsLike°c",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Row(
+                modifier = Modifier.padding(4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                Icon(
+                    painter = painterResource(id = R.drawable.windy),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(end = 8.dp)
+                )
+                Text(
+                    text = speed,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+}
+
+@Composable
+private fun MiddleEachContent(content: String, icon:Int) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(0.33f),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = content)
+            Icon(
+                painter = painterResource( icon),
+                contentDescription = null,
+            )
+            Text(stringResource(id = R.string.humidity))
+        }
     }
 }
 

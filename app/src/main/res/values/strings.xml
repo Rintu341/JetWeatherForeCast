@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">WeatherForcastApp</string>
+    <string name="app_name">WeatherForecastApp</string>
+    <string name="feellike">feels like</string>
+    <string name="humidity">humidity</string>
+    <string name="speed">speed</string>
+    <string name="cloud">cloud</string>
+
+
 </resources>
