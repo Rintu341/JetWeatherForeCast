@@ -1,22 +1,22 @@
 package com.example.weatherforcastapp.screen.main
 
 
-import android.graphics.Paint.Align
-import androidx.compose.foundation.BorderStroke
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,7 +28,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +40,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -48,14 +48,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -67,6 +68,8 @@ import com.example.weatherforcastapp.model.WeatherObject
 import com.example.weatherforcastapp.utils.fahrenheitToCelsius
 import com.example.weatherforcastapp.utils.formatDate
 import com.example.weatherforcastapp.utils.formatDateTime
+import com.example.weatherforcastapp.utils.formatDateTimeInNumber
+import com.example.weatherforcastapp.utils.formatJustDate
 
 @Composable
 fun MainScreen(navController: NavController,
@@ -193,6 +196,9 @@ fun MainContent(weatherData: State<DataOrException<WeatherObject, Boolean, Excep
         mutableStateOf("https://openweathermap.org/img/wn/${weatherData.value.data!!.list[0].weather[0].icon}.png")
     }
     val weatherItem = weatherData.value.data!!.list[0]
+    val index = remember {
+        mutableIntStateOf(0)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -206,8 +212,87 @@ fun MainContent(weatherData: State<DataOrException<WeatherObject, Boolean, Excep
         MiddleMainContent(humidity = weatherItem.humidity.toString(),
             feelsLike = fahrenheitToCelsius(weatherItem.feels_like.day),
             speed = weatherItem.speed.toString())
+        Log.d("size","${weatherData.value.data!!.list.size}")
         Divider()
         SunShineAndSunRise(sunset = weatherItem.sunset,sunrise = weatherItem.sunrise)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        )
+        {
+            Text("This Week",
+                fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                fontWeight = FontWeight.ExtraBold)
+        }
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            color = Color.Transparent,
+        ) {
+            LazyColumn {
+                items(weatherData.value.data!!.list.size)
+                {index->
+                    WeatherDetailsRow(weatherData = weatherData, index = index )
+                }
+            }
+
+        }
+    }
+}
+/*
+                items(weatherData.value.data!!.list)
+                {item ->
+                    WeatherDetailsRow(weatherData = weatherData, index = index.intValue )
+                }
+ */
+
+@Composable
+fun WeatherDetailsRow(weatherData: State<DataOrException<WeatherObject, Boolean, Exception>>,index:Int) {
+
+//    val imageUrl = remember {
+//        mutableStateOf("https://openweathermap.org/img/wn/${weatherData.value.data!!.list[0].weather[0].icon}.png")
+//    }
+    val weatherItem = weatherData.value.data
+    val milliseconds = weatherItem!!.list[index].sunrise
+    val space : Dp = 20.dp
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 8.dp),
+        colors = CardDefaults.cardColors(Color.Transparent),
+        elevation = CardDefaults.cardElevation(0.dp),
+        shape = RectangleShape
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        )
+        {
+            Row {
+                Text(text = formatDateTimeInNumber(milliseconds))
+                Spacer(modifier = Modifier.width(space))
+                Text(text = formatJustDate(milliseconds))
+            }
+            Box() {
+                AsyncImage(
+                    model = "https://openweathermap.org/img/wn/${weatherData.value.data!!.list[0].weather[0].icon}.png",
+                    contentDescription = "Weather icon",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                )
+            }
+            Row {
+                Text( text = fahrenheitToCelsius(weatherItem.list[index].temp.max))
+                Spacer(modifier = Modifier.width(space))
+                Text( text = fahrenheitToCelsius(weatherItem.list[index].temp.min))
+            }
+        }
     }
 }
 
@@ -225,7 +310,8 @@ fun SunShineAndSunRise(sunset: Int, sunrise: Int) {
             Image(
                 painter = painterResource(id =  R.drawable.sunrise),
                 contentDescription = "sunrise",
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier
+                    .size(40.dp)
                     .padding(end = 8.dp)
             )
             Text(text = formatDateTime(sunrise),
@@ -241,7 +327,8 @@ fun SunShineAndSunRise(sunset: Int, sunrise: Int) {
             Image(
                 painter = painterResource(id =  R.drawable.sunset),
                 contentDescription = "sunset",
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier
+                    .size(40.dp)
                     .padding(start = 8.dp)
             )
 

@@ -14,11 +14,24 @@ fun fahrenheitToCelsius(fahrenheit:Double):String{
     return ((fahrenheit - 32)/1.8f).toInt().toString()
 }
 
+fun formatJustDate(unixTime: Int): String {
+    val date = Date(unixTime * 1000L)
+    val sdf = SimpleDateFormat("EEE", Locale.getDefault())
+    sdf.timeZone = TimeZone.getDefault()
+    return sdf.format(date)
+}
+
 
 fun formatDateTime(unixTime: Int): String {
     //convert it into second to millisecond
     val date = Date(unixTime * 1000L)
     val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    sdf.timeZone = TimeZone.getDefault()
+    return sdf.format(date)
+}
+fun formatDateTimeInNumber(unixTime: Int): String {
+    val date = Date(unixTime * 1000L)
+    val sdf = SimpleDateFormat("dd/MM", Locale.getDefault())
     sdf.timeZone = TimeZone.getDefault()
     return sdf.format(date)
 }
