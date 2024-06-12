@@ -37,6 +37,7 @@ fun WeatherSplashScreen(navController: NavController) {
     val scale = remember{
         Animatable(initialValue = 0f)
     }
+    val defaultCity = "Kolkata"
     LaunchedEffect(key1 = true, block = {
         scale.animateTo(
             targetValue = 0.9f,
@@ -48,7 +49,7 @@ fun WeatherSplashScreen(navController: NavController) {
             )
         )
         delay(2000L)
-        navController.navigate(route = WeatherScreens.MainScreen.name){
+        navController.navigate(route = WeatherScreens.MainScreen.name + "/$defaultCity"){
             popUpTo(WeatherScreens.SplashScreen.name) { inclusive = true }
         }
     })
