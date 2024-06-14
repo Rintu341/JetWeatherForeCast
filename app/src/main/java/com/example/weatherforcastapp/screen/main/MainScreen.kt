@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.example.weather.navigation.WeatherScreens
 import com.example.weatherforcastapp.data.DataOrException
-import com.example.weatherforcastapp.model.WeatherObject
+import com.example.weatherforcastapp.model.apiModel.WeatherObject
 import com.example.weatherforcastapp.widgets.MainContent
 import com.example.weatherforcastapp.widgets.WeatherAppBar
 

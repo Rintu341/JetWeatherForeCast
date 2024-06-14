@@ -1,6 +1,6 @@
 package com.example.weatherforcastapp.network
 
-import com.example.weatherforcastapp.model.WeatherObject
+import com.example.weatherforcastapp.model.apiModel.WeatherObject
 import com.example.weatherforcastapp.utils.Constants
 import retrofit2.http.GET
 import retrofit2.http.Query

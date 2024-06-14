@@ -1,4 +1,4 @@
-package com.example.weatherforcastapp.model
+package com.example.weatherforcastapp.model.apiModel
 
 data class WeatherItem (
     val clouds: Int,

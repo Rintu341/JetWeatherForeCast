@@ -3,43 +3,53 @@ package com.example.weatherforcastapp.widgets
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,13 +70,13 @@ import coil.compose.AsyncImage
 import com.example.weather.navigation.WeatherScreens
 import com.example.weatherforcastapp.R
 import com.example.weatherforcastapp.data.DataOrException
-import com.example.weatherforcastapp.model.WeatherObject
+import com.example.weatherforcastapp.model.apiModel.WeatherObject
+import com.example.weatherforcastapp.navigation.Menus
 import com.example.weatherforcastapp.utils.fahrenheitToCelsius
 import com.example.weatherforcastapp.utils.formatDate
 import com.example.weatherforcastapp.utils.formatDateTime
 import com.example.weatherforcastapp.utils.formatDateTimeInNumber
 import com.example.weatherforcastapp.utils.formatJustDate
-
 
 
 @Composable
@@ -80,6 +90,9 @@ import com.example.weatherforcastapp.utils.formatJustDate
     icon : ImageVector? = null,
     onSearchClick:() ->Unit = {},
 ) {
+     val isShowDialog = remember{
+         mutableStateOf(false)
+     }
     // this scrollBehavior is used for to add elevation in top app bar at a time user scroll
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     CenterAlignedTopAppBar(
@@ -118,6 +131,7 @@ import com.example.weatherforcastapp.utils.formatJustDate
                 }
 
                 IconButton(onClick = {
+                    isShowDialog.value = true
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Menu,
@@ -137,7 +151,65 @@ import com.example.weatherforcastapp.utils.formatJustDate
         },
         scrollBehavior = scrollBehavior
     )
+
+    if(isShowDialog.value)
+        ShowDropDownMenuDialog(showDialog = isShowDialog, navController = navController )
 }
+
+@Composable
+fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
+                           navController: NavController)
+{
+    var expanded by remember{
+        mutableStateOf(true)
+    }
+    val items = listOf("Favorites","About","Setting")
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.TopEnd)
+            .absolutePadding(top = 45.dp, right = 20.dp)
+    )
+    {
+            DropdownMenu(expanded = expanded ,
+                onDismissRequest = {
+                    expanded = false
+             },
+                modifier = Modifier
+                    .width(140.dp)
+                    .background(MaterialTheme.colorScheme.background)) {
+                items.forEachIndexed{ index, text->
+                    DropdownMenuItem(
+                        {
+                            Row() {
+                                Icon(
+                                    imageVector = when (text) {
+                                        Menus.About.name  -> Icons.Default.Info
+                                        Menus.Favorites.name -> Icons.Default.Favorite
+                                        else -> Icons.Default.Settings
+                                    }, contentDescription = null,
+                                    tint = Color.LightGray
+                                )
+                                Text(text, modifier = Modifier.clickable {
+                                        navController.navigate(
+                                            when(text){
+                                                Menus.Favorites.name -> WeatherScreens.FavoriteScreen.name
+                                                Menus.About.name -> WeatherScreens.AboutScreen.name
+                                                else -> WeatherScreens.FavoriteScreen.name
+                                            }
+                                        )
+                                },
+                                    fontWeight = FontWeight.Bold)
+                            }
+                                    }, onClick = {
+                        expanded = false
+                        showDialog.value = false
+                    })
+                }
+            }
+    }
+}
+
 
 @Composable
 fun MainContent(weatherData: State<DataOrException<WeatherObject, Boolean, Exception>>) {

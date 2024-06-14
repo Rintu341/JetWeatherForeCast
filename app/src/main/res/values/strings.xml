@@ -4,6 +4,8 @@
     <string name="humidity">humidity</string>
     <string name="speed">speed</string>
     <string name="cloud">cloud</string>
+    <string name="about_app">Weather ForcastApp v0.1</string>
+    <string name="api_used">api used https://openweathermap.org/api</string>
 
 
 </resources>

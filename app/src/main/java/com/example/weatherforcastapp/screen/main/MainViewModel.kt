@@ -1,15 +1,10 @@
 package com.example.weatherforcastapp.screen.main
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.weatherforcastapp.data.DataOrException
-import com.example.weatherforcastapp.model.WeatherObject
+import com.example.weatherforcastapp.model.apiModel.WeatherObject
 import com.example.weatherforcastapp.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel

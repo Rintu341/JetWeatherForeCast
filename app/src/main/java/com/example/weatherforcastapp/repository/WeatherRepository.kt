@@ -2,7 +2,7 @@ package com.example.weatherforcastapp.repository
 
 import android.util.Log
 import com.example.weatherforcastapp.data.DataOrException
-import com.example.weatherforcastapp.model.WeatherObject
+import com.example.weatherforcastapp.model.apiModel.WeatherObject
 import com.example.weatherforcastapp.network.WeatherApi
 import javax.inject.Inject
 
