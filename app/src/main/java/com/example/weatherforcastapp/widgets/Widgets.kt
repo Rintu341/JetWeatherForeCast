@@ -65,13 +65,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.weather.navigation.WeatherScreens
 import com.example.weatherforcastapp.R
 import com.example.weatherforcastapp.data.DataOrException
 import com.example.weatherforcastapp.model.apiModel.WeatherObject
+import com.example.weatherforcastapp.model.favoritesModel.Favorite
 import com.example.weatherforcastapp.navigation.Menus
+import com.example.weatherforcastapp.screen.favorites.FavoriteViewModel
 import com.example.weatherforcastapp.utils.fahrenheitToCelsius
 import com.example.weatherforcastapp.utils.formatDate
 import com.example.weatherforcastapp.utils.formatDateTime
@@ -87,6 +90,7 @@ import com.example.weatherforcastapp.utils.formatJustDate
     onMenuClick:() -> Unit = {},
     isMainScreen:Boolean = true,
     title:String = "Title",
+    favoriteViewModel: FavoriteViewModel = hiltViewModel(),
     icon : ImageVector? = null,
     onSearchClick:() ->Unit = {},
 ) {
@@ -148,6 +152,23 @@ import com.example.weatherforcastapp.utils.formatJustDate
                     Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = null)
                 }
             }
+            if(isMainScreen)
+            {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    modifier = Modifier.clickable {
+                        val favorite = title.split(",")
+                        favoriteViewModel.insertFavorite(
+                            Favorite(
+                                city = favorite[0], //city name
+                                country = favorite[1] // country name
+                            )
+                        )
+                    },
+                    tint = Color.Green
+                )
+            }
         },
         scrollBehavior = scrollBehavior
     )
@@ -181,7 +202,19 @@ fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
                 items.forEachIndexed{ index, text->
                     DropdownMenuItem(
                         {
-                            Row() {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navController.navigate(
+                                            when (text) {
+                                                Menus.Favorites.name -> WeatherScreens.FavoriteScreen.name
+                                                Menus.About.name -> WeatherScreens.AboutScreen.name
+                                                else -> WeatherScreens.SettingsScreen.name
+                                            }
+                                        )
+                                    }
+                            ) {
                                 Icon(
                                     imageVector = when (text) {
                                         Menus.About.name  -> Icons.Default.Info
@@ -190,15 +223,8 @@ fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
                                     }, contentDescription = null,
                                     tint = Color.LightGray
                                 )
-                                Text(text, modifier = Modifier.clickable {
-                                        navController.navigate(
-                                            when(text){
-                                                Menus.Favorites.name -> WeatherScreens.FavoriteScreen.name
-                                                Menus.About.name -> WeatherScreens.AboutScreen.name
-                                                else -> WeatherScreens.FavoriteScreen.name
-                                            }
-                                        )
-                                },
+                                Text(text,
+                                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                     fontWeight = FontWeight.Bold)
                             }
                                     }, onClick = {
