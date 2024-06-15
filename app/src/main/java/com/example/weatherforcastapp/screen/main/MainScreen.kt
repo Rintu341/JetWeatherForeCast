@@ -1,6 +1,7 @@
 package com.example.weatherforcastapp.screen.main
 
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -35,7 +36,13 @@ fun MainScreen(
         when{
             weatherData.value.loading == true ->
             {
+                Column (
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
                 CircularProgressIndicator()
+                }
             }
             weatherData.value.e != null ->{
                 Text("Something is wrong ")
