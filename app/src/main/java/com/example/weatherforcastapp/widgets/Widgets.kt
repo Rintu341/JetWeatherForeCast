@@ -1,6 +1,7 @@
 package com.example.weatherforcastapp.widgets
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,6 +46,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -80,6 +83,7 @@ import com.example.weatherforcastapp.utils.formatDate
 import com.example.weatherforcastapp.utils.formatDateTime
 import com.example.weatherforcastapp.utils.formatDateTimeInNumber
 import com.example.weatherforcastapp.utils.formatJustDate
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -97,6 +101,9 @@ import com.example.weatherforcastapp.utils.formatJustDate
      val isShowDialog = remember{
          mutableStateOf(false)
      }
+    var save by remember{
+        mutableStateOf(false)
+    }
     // this scrollBehavior is used for to add elevation in top app bar at a time user scroll
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     CenterAlignedTopAppBar(
@@ -152,23 +159,38 @@ import com.example.weatherforcastapp.utils.formatJustDate
                     Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = null)
                 }
             }
-            if(isMainScreen)
-            {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    modifier = Modifier.clickable {
-                        val favorite = title.split(",")
-                        favoriteViewModel.insertFavorite(
-                            Favorite(
-                                city = favorite[0], //city name
-                                country = favorite[1] // country name
-                            )
-                        )
-                    },
-                    tint = Color.Green
-                )
+            if(isMainScreen) {
+
+                val isAlreadyFavList =
+                    favoriteViewModel.favoriteList.collectAsState().value.data?.filter { item ->
+                       (item.city == title.split(",")[0])
+                    }
+                if (isAlreadyFavList.isNullOrEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = null,
+                        modifier = Modifier.clickable {
+                            val favorite = title.split(",")
+                            favoriteViewModel.insertFavorite(
+                                Favorite(
+                                    city = favorite[0], //city name
+                                    country = favorite[1] // country name
+                                )
+                            ).run {
+                            save = true
+                            }
+                        },
+                        tint = Color.Green
+                    )
+                }else{
+                    save = false
+                    Box{}
+                }
+                if(save){
+                    Toast.makeText(LocalContext.current,"Add to Favorites",Toast.LENGTH_SHORT).show()
+                }
             }
+
         },
         scrollBehavior = scrollBehavior
     )
