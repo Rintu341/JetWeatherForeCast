@@ -12,9 +12,9 @@ class MainViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository
 ) :ViewModel(){
 
-    suspend fun getWeatherData(city:String) : DataOrException<WeatherObject,Boolean,Exception>
+    suspend fun getWeatherData(city: String, units: String) : DataOrException<WeatherObject,Boolean,Exception>
     {
-        return weatherRepository.getWeather(city)
+        return weatherRepository.getWeather(city,units)
     }
     /*
     private var _data = MutableLiveData<DataOrException<WeatherObject,Boolean,Exception>>()

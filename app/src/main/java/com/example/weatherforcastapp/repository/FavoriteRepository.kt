@@ -1,6 +1,7 @@
 package com.example.weatherforcastapp.repository
 
 import com.example.weatherforcastapp.data.WeatherDao
+import com.example.weatherforcastapp.model.UnitModel.Unit
 import com.example.weatherforcastapp.model.favoritesModel.Favorite
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -17,4 +18,12 @@ class FavoriteRepository @Inject constructor(
      suspend fun  deleteAllFavorite() = weatherDao.deleteAllFavorite()
      fun  getFavorites():Flow<List<Favorite>> = weatherDao.getFavorites().flowOn(Dispatchers.IO).conflate()
      suspend fun getFavByID(city:String):Favorite = weatherDao.getFavById(city)
+
+     fun  getUnits():Flow<List<Unit>> = weatherDao.getUnits().flowOn(Dispatchers.IO).conflate()
+
+     suspend fun  insertUnit(unit: Unit) = weatherDao.insertUnit(unit)
+     suspend fun  updateUnit(unit: Unit) = weatherDao.updateUnit(unit)
+     suspend fun  deleteUnit(unit: Unit) = weatherDao.deleteUnit(unit)
+     suspend fun  deleteAllUnits() = weatherDao.deleteAllUnits()
+
 }

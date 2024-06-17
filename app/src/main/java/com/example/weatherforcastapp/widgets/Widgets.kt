@@ -44,7 +44,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,7 +82,6 @@ import com.example.weatherforcastapp.utils.formatDate
 import com.example.weatherforcastapp.utils.formatDateTime
 import com.example.weatherforcastapp.utils.formatDateTimeInNumber
 import com.example.weatherforcastapp.utils.formatJustDate
-import kotlinx.coroutines.delay
 
 
 @Composable
@@ -98,11 +96,17 @@ import kotlinx.coroutines.delay
     icon : ImageVector? = null,
     onSearchClick:() ->Unit = {},
 ) {
-     val isShowDialog = remember{
+     var isShowDialog = remember{
          mutableStateOf(false)
      }
     var save by remember{
         mutableStateOf(false)
+    }
+    if (isShowDialog.value) {
+        ShowDropDownMenuDialog(
+            showDialog = { isShowDialog.value = false },
+            navController = navController
+        )
     }
     // this scrollBehavior is used for to add elevation in top app bar at a time user scroll
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -149,6 +153,7 @@ import kotlinx.coroutines.delay
                         contentDescription = "Localized description"
                     )
                 }
+
             }
         },
         navigationIcon = {
@@ -195,12 +200,11 @@ import kotlinx.coroutines.delay
         scrollBehavior = scrollBehavior
     )
 
-    if(isShowDialog.value)
-        ShowDropDownMenuDialog(showDialog = isShowDialog, navController = navController )
+
 }
 
 @Composable
-fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
+fun ShowDropDownMenuDialog(showDialog: () -> Unit,
                            navController: NavController)
 {
     var expanded by remember{
@@ -217,6 +221,7 @@ fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
             DropdownMenu(expanded = expanded ,
                 onDismissRequest = {
                     expanded = false
+                    showDialog()
              },
                 modifier = Modifier
                     .width(140.dp)
@@ -250,9 +255,9 @@ fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
                                     fontWeight = FontWeight.Bold)
                             }
                                     }, onClick = {
-                        expanded = false
-                        showDialog.value = false
-                    })
+
+                    }
+                    )
                 }
             }
     }
@@ -260,7 +265,10 @@ fun ShowDropDownMenuDialog(showDialog: MutableState< Boolean>,
 
 
 @Composable
-fun MainContent(weatherData: State<DataOrException<WeatherObject, Boolean, Exception>>) {
+fun MainContent(
+    weatherData: State<DataOrException<WeatherObject, Boolean, Exception>>,
+    unit: String
+) {
     val imageUrl = remember {
         mutableStateOf("https://openweathermap.org/img/wn/${weatherData.value.data!!.list[0].weather[0].icon}.png")
     }
@@ -276,11 +284,13 @@ fun MainContent(weatherData: State<DataOrException<WeatherObject, Boolean, Excep
         TopMainContent(weatherItem.temp.day,
             imageUrl.value,
             formatDate(weatherItem.dt),
-            weatherItem.weather[0].main
+            weatherItem.weather[0].main,
+            unit
         )
         MiddleMainContent(humidity = weatherItem.humidity.toString(),
-            feelsLike = fahrenheitToCelsius(weatherItem.feels_like.day),
-            speed = weatherItem.speed.toString())
+            feelsLike = weatherItem.feels_like.day.toInt().toString(),
+            speed = weatherItem.speed.toString(),
+            unit)
         Log.d("size","${weatherData.value.data!!.list.size}")
         Divider()
         SunShineAndSunRise(sunset = weatherItem.sunset,sunrise = weatherItem.sunrise)
@@ -357,9 +367,9 @@ fun WeatherDetailsRow(weatherData: State<DataOrException<WeatherObject, Boolean,
                 )
             }
             Row {
-                Text( text = fahrenheitToCelsius(weatherItem.list[index].temp.max))
+                Text( text = weatherItem.list[index].temp.max.toInt().toString())
                 Spacer(modifier = Modifier.width(space))
-                Text( text = fahrenheitToCelsius(weatherItem.list[index].temp.min))
+                Text( text = weatherItem.list[index].temp.min.toInt().toString())
             }
         }
     }
@@ -407,12 +417,14 @@ fun SunShineAndSunRise(sunset: Int, sunrise: Int) {
 }
 
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun TopMainContent(temp: Double = 84.87,
-                   iconUrl: String = "icon",
-                   date:String = "Thu, Oct 34",
-                   currentWeather:String = "Clear"
+fun TopMainContent(
+    temp: Double = 84.87,
+    iconUrl: String = "icon",
+    date: String = "Thu, Oct 34",
+    currentWeather: String = "Clear",
+    unit: String
 ) {
 
     Card(
@@ -440,7 +452,7 @@ fun TopMainContent(temp: Double = 84.87,
                 {
                     Column {
                         Text(
-                            text = fahrenheitToCelsius(temp) +"°c",
+                            text = if(unit == "imperial") temp.toInt().toString() +"°f" else temp.toInt().toString() +"°c" ,
                             fontSize = 70.sp
                         )
                         Text(
@@ -480,9 +492,9 @@ fun TopMainContent(temp: Double = 84.87,
 
     }
 }
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun MiddleMainContent(humidity:String = "10",feelsLike: String = "45",speed:String = "20") {
+fun MiddleMainContent(humidity:String = "10",feelsLike: String = "45",speed:String = "20",unit:String) {
 
     Row(
         modifier = Modifier
@@ -523,7 +535,7 @@ fun MiddleMainContent(humidity:String = "10",feelsLike: String = "45",speed:Stri
                     .padding(end = 8.dp)
             )
             Text(
-                text = "$feelsLike°c",
+                text = if(unit == "imperial") "$feelsLike°f" else "$feelsLike°c",
                 style = MaterialTheme.typography.bodyLarge
             )
         }

@@ -9,10 +9,10 @@ import javax.inject.Inject
 class WeatherRepository  @Inject constructor(
     private val weatherApi: WeatherApi
 ){
-    suspend fun getWeather(city :String) : DataOrException<WeatherObject,Boolean,Exception>
+    suspend fun getWeather(city: String, units: String) : DataOrException<WeatherObject,Boolean,Exception>
     {
        val response = try {
-            weatherApi.getWeather(location = city)
+            weatherApi.getWeather(location = city,units = units)
         }catch (e:Exception)
        {
            Log.d("wrong", e.toString())

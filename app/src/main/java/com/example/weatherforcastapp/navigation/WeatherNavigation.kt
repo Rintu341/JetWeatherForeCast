@@ -10,7 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.weather.navigation.WeatherScreens
 import com.example.weatherforcastapp.screen.main.MainScreen
-import com.example.weather.screen.splash.WeatherSplashScreen
+import com.example.weatherforcastapp.screen.splash.WeatherSplashScreen
 import com.example.weatherforcastapp.screen.about.AboutScreen
 import com.example.weatherforcastapp.screen.favorites.FavoritesScreen
 import com.example.weatherforcastapp.screen.main.MainViewModel
@@ -37,7 +37,7 @@ fun WeatherNavigation(modifier: Modifier = Modifier) {
             )
         ){navBackStackEntry ->
             navBackStackEntry.arguments?.getString("city").let{city->
-                MainScreen(navController = navController,mainViewModel,city)
+                MainScreen(navController = navController,mainViewModel,city = city)
             }
         }
         composable(route = WeatherScreens.SearchScreen.name){
